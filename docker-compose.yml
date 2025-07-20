@@ -1,22 +1,57 @@
-PostgreSQL:
-  restart: always
-  image: sameersbn/postgresql:15-20230628
-  ports:
-    - "5432:5432"
-  environment:
-    - DEBUG=false
+services:
+  pgsql:
+    restart: always
+    image: r4mtin/ha-postgresql
+    build: .
+    ports:
+      - "5432:5432"
+    environment:
+      - DEBUG=false
+      - PG_VERSION=16
+      - DB_USER=test
+      - DB_PASS=test_secret
+      - DB_NAME=db
+      - PG_PASSWORD=postgres_secret
 
-    - DB_USER=
-    - DB_PASS=
-    - DB_NAME=
-    - DB_TEMPLATE=
+      - REPLICATION_MODE=master
+      - REPLICATION_USER=repl
+      - REPLICATION_PASS=repl_secret
+  #    - REPLICATION_SSLMODE=
+    volumes:
+      - postgresql:/var/lib/postgresql
+  
+  pgsql-slave:
+    restart: always
+    image: r4mtin/ha-postgresql
+    build: .
+    ports:
+      - "54320:5432"
+    environment:
+      - DEBUG=true
+      - PG_VERSION=16
+      - DB_USER=test
+      - DB_PASS=test_secret
+      - DB_NAME=db
+      - PG_PASSWORD=postgres_secret
 
-    - DB_EXTENSION=
+      - REPLICATION_MODE=slave
+      - REPLICATION_HOST=pgsql
+      - REPLICATION_PORT=5432
+      - REPLICATION_USER=repl
+      - REPLICATION_PASS=repl_secret
+      - REPLICATION_SSLMODE=prefer
 
-    - REPLICATION_MODE=
-    - REPLICATION_USER=
-    - REPLICATION_PASS=
-    - REPLICATION_SSLMODE=
-  command: "--wal_keep_segments=32 --logging_collector=off"
-  volumes:
-    - postgresql:/var/lib/postgresql
+  pgadmin:
+    image: dpage/pgadmin4:8
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@test.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin
+      PGADMIN_LISTEN_PORT: 9000
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - "9000:9000"
+
+volumes:
+  postgresql:
+  pgadmin:

@@ -1,4 +1,4 @@
-# sameersbn/postgresql:15-20230628
+# R4MT1N/postgresql
 
 - [Introduction](#introduction)
   - [Contributing](#contributing)
