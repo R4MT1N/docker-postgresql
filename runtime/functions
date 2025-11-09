@@ -111,6 +111,9 @@ configure_hot_standby() {
       set_postgresql_param "max_wal_senders" "16"
       set_postgresql_param "wal_keep_size" "512"
       set_postgresql_param "hot_standby" "on"
+      [ -z "${PG_SHARED_BUFFERS}" ] && set_postgresql_param "shared_buffers" "${PG_SHARED_BUFFERS}"
+      [ -z "${PG_EFFECTIVE_CACHE_SIZE}" ] && set_postgresql_param "effective_cache_size" "${PG_EFFECTIVE_CACHE_SIZE}"
+      [ -z "${PG_WORK_MEM}" ] && set_postgresql_param "work_mem" "${PG_WORK_MEM}"
       ;;
   esac
 }
@@ -274,6 +277,8 @@ create_user() {
         echo "Creating database user: ${DB_USER}"
         if [[ -z $(psql -U ${PG_USER} -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '${DB_USER}'";) ]]; then
           psql -U ${PG_USER} -c "CREATE ROLE \"${DB_USER}\" with LOGIN CREATEDB PASSWORD '${DB_PASS}';" >/dev/null
+        else
+          psql -U ${PG_USER} -c "ALTER ROLE \"${DB_USER}\" WITH PASSWORD '${DB_PASS}';" >/dev/null
         fi
         ;;
     esac
